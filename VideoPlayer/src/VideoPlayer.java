@@ -8,21 +8,23 @@ import java.util.Scanner;
 public class VideoPlayer {
 	
 	private File textFile;
+	private File durationFile;
 	private Scanner in;
 	private ArrayList<Integer> videoList;
 	private ArrayList<Integer> durationList;
 	
-	public VideoPlayer(String fileName) throws IOException, InterruptedException {
+	public VideoPlayer(String fileName,  String durationFileName) throws IOException, InterruptedException {
 		
 		this.textFile = new File(fileName);
+		this.durationFile = new File(durationFileName);
 		readInFile(this.textFile);
+		readInDurationFile(this.durationFile);
 		videoFeed();
 	}
 	
 	public void readInFile(File textFile) throws FileNotFoundException {
 		
 		this.videoList = new ArrayList<Integer>();
-		this.durationList = new ArrayList<Integer>();
 
 		try {
 			this.in = new Scanner(textFile);
@@ -30,8 +32,6 @@ public class VideoPlayer {
 			while (in.hasNextLine()) {
 				
 				this.videoList.add(in.nextInt());
-				int durationConversiontoMilli = (in.nextInt() + 1) * 1000; //the 1 is a time cushion.
-				this.durationList.add(durationConversiontoMilli);
 				if (in.hasNextLine()) {
 					in.nextLine();
 				}
@@ -39,16 +39,43 @@ public class VideoPlayer {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} finally {
+			in.close();
 		}
 		//test();
+	}
+	
+	public void readInDurationFile(File durationFile) {
+		
+		this.durationList = new ArrayList<Integer>();
+
+		try {
+			this.in = new Scanner(durationFile);
+			
+			while (in.hasNextLine()) {
+				
+				int durationConversionToMilli = (in.nextInt() + 1) * 1000;
+				this.durationList.add(durationConversionToMilli);
+				if (in.hasNextLine()) {
+					in.nextLine();
+				}
+			}
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			in.close();
+		}
 	}
 	
 	public void videoFeed() throws IOException, InterruptedException {
 		int count = 0;
 		
 		while (this.videoList.size() > count) {
-			playVideo(this.videoList.get(count));
-			Thread.sleep(this.durationList.get(count));
+			
+			int videoNum = this.videoList.get(count);
+			playVideo(videoNum);
+			Thread.sleep(this.durationList.get(videoNum - 1));
 			count++;
 		}
 	}
@@ -83,7 +110,7 @@ public class VideoPlayer {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		
-		new VideoPlayer("file.txt");
+		new VideoPlayer("file.txt", "duration.txt");
 		
 	}
 } 
